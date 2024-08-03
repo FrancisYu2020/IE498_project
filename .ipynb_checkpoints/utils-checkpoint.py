@@ -60,6 +60,15 @@ def black_scholes_call_price(S0, r, q, K, T, sigma):
     d2 = d1 - sigma * np.sqrt(T)
     return S0 * np.exp(- q * T) * norm.cdf(d1) - K * np.exp(- r * T) * norm.cdf(d2)
 
+def black_scholes_put_price(S0, r, q, K, T, sigma):
+    '''
+    European Black-Scholes formula to compute call price
+    Helper function for question 2
+    '''
+    d1 = (np.log(S0 / K) + (r - q + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    return -S0 * np.exp(- q * T) * norm.cdf(-d1) + K * np.exp(- r * T) * norm.cdf(-d2)
+
 def payoff(Option, K, S):
     assert Option in ['P', 'C'], "Only P and C accepted for option parameter"
     if Option == 'P':
