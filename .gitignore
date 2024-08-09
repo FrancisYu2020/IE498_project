@@ -6,3 +6,4 @@ test.py
 *.zip
 *.csv
 .ipynb*
+!question6.png
