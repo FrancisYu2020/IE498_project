@@ -51,6 +51,57 @@ def Binomial(Option, K, T, S0, sigma, r, q, N, Exercise):
 
     return option_price, end_time - start_time
 
+def Binomial_Calibration(Option, K, T, S0, u, r, q, N, Exercise):
+    '''
+    Binomial model implementation for project question 6
+    Instead of sigma, we need u here
+    '''
+    # function to compute f(n, j)
+    delta = T / N
+    d = 1 / u
+    p = risk_neutral_probability(r, q, delta, u, d)
+
+    def payoff(n, j):
+        if Option == 'C':
+            # use call payoff function
+            return max(0, S0 * u**j * d**(n - j) - K)
+        elif Option == 'P':
+            # use put payoff function
+            return max(0, K - S0 * u**j * d**(n - j))
+        else:
+            raise NameError(f"Unrecognized option type {Option}!")
+
+    # set up the memory buffer for dynamic programming
+    # only use two vectors for memory efficiency
+    memory = np.ones((2, N + 1))
+    # initialize the leave node values
+    for j in range(N + 1):
+        memory[N % 2, j] = payoff(N, j)
+
+    # main part for dynamic programming
+    for n in range(N - 1, -1, -1):
+        for j in range(n + 1):
+            t0, t1 = n % 2, (n + 1) % 2
+            if Exercise == 'A':
+                memory[t0, j] = max(payoff(n, j), np.exp(- r * delta) * (p * memory[t1, j + 1] + (1 - p) * memory[t1, j]))
+            elif Exercise == 'E':
+                memory[t0, j] = np.exp(- r * delta) * (p * memory[t1, j + 1] + (1 - p) * memory[t1, j])
+            else:
+                raise NameError(f'Unrecognized option style {Exercise}!')
+    
+    option_price = memory[0, 0]
+    end_time = time.time()
+
+    return option_price
+
+
+def European_option_price(option, S0, r, q, K, T, sigma):
+    assert option in ['P', 'C'], "Only P and C accepted for option parameter"
+    if option == 'C':
+        return black_scholes_call_price(S0, r, q, K, T, sigma)
+    else:
+        return black_scholes_put_price(S0, r, q, K, T, sigma)
+    
 def black_scholes_call_price(S0, r, q, K, T, sigma):
     '''
     European Black-Scholes formula to compute call price
